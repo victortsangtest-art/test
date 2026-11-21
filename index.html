@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>太子至旺角順路導航清單</title>
+  <style>
+    :root {
+      --bg: #f2f4f7;
+      --card: #ffffff;
+      --primary: #1a73e8;
+      --done-bg: #e8eaed;
+      --text: #1f2937;
+      --subtext: #4b5563;
+      --fav-bg: #fff1f2;
+      --fav-border: #f43f5e;
+      --fav-text: #be123c;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 0 40px 0;
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #111827;
+      color: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .header-top h1 {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 700;
+    }
+    .badges-group {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .progress-badge {
+      background: #374151;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .fav-badge {
+      background: #9f1239;
+      color: #ffe4e6;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .filter-btn {
+      background: #374151;
+      color: #e5e7eb;
+      border: none;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    .filter-btn.fav-filter.active {
+      background: #e11d48;
+      color: #fff;
+    }
+    .list-container {
+      padding: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 5px solid var(--primary);
+      transition: all 0.2s ease;
+    }
+    .card.has-fav {
+      border-left-color: #f43f5e;
+    }
+    .card.done {
+      background: var(--done-bg);
+      border-left-color: #9ca3af;
+      opacity: 0.82;
+    }
+    .card.done .shop-name {
+      text-decoration: line-through;
+      color: #6b7280;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .seq-num {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .card.has-fav .seq-num {
+      background: #e11d48;
+    }
+    .card.done .seq-num {
+      background: #6b7280;
+    }
+    .shop-name {
+      font-size: 19px;
+      font-weight: 700;
+    }
+    .time-tag {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid #fde68a;
+    }
+    .check-btn {
+      background: #f3f4f6;
+      border: 1.5px solid #d1d5db;
+      color: #374151;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .card.done .check-btn {
+      background: #10b981;
+      border-color: #10b981;
+      color: #fff;
+    }
+    .address-row {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--subtext);
+      line-height: 1.4;
+    }
+    .walk-tip {
+      margin-top: 4px;
+      font-size: 12.5px;
+      color: #059669;
+      font-weight: 500;
+    }
+    .staff-section {
+      margin-top: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .staff-hint {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .staff-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .staff-chip {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #1e293b;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .staff-chip.liked {
+      background: var(--fav-bg);
+      border-color: var(--fav-border);
+      color: var(--fav-text);
+      box-shadow: 0 1px 3px rgba(244, 63, 94, 0.2);
+    }
+    .card-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .map-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .map-btn:active {
+      background: #dbeafe;
+    }
+    .empty-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+      font-size: 15px;
+    }
+    .reset-area {
+      text-align: center;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #9ca3af;
+      color: #6b7280;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sticky-header">
+    <div class="header-top">
+      <h1>太子 ➔ 旺角 順路清單</h1>
+      <div class="badges-group">
+        <span class="fav-badge" id="favCountText">❤️ 0</span>
+        <span class="progress-badge" id="progressText">已去 0/11</span>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter('all', this)">全部 (11)</button>
+      <button class="filter-btn fav-filter" onclick="setFilter('fav', this)">❤️ 心水</button>
+      <button class="filter-btn" onclick="setFilter('undone', this)">未去</button>
+      <button class="filter-btn" onclick="setFilter('sec1', this)">1. 太子段</button>
+      <button class="filter-btn" onclick="setFilter('sec2', this)">2. 旺角中段</button>
+      <button class="filter-btn" onclick="setFilter('sec3', this)">3. 旺角南段</button>
+    </div>
+  </div>
+
+  <div class="list-container" id="listContainer"></div>
+
+  <div class="reset-area">
+    <button class="reset-btn" onclick="resetDone()">重設「已去」紀錄</button>
+    <button class="reset-btn" onclick="resetFavs()">重設「心水」標記</button>
+  </div>
+
+  <script>
+    const spots = [
+      {
+        seq: 1,
+        section: 'sec1',
+        name: '太子',
+        addr: '太子道西 131 號二樓',
+        mapQuery: '香港太子道西131號',
+        tip: '起點：太子站 B2 出口行過去',
+        time: '8-1',
+        staffList: ['DaDa']
+      },
+      {
+        seq: 2,
+        section: 'sec1',
+        name: '春秋',
+        addr: '太子砵蘭街 392A 二樓',
+        mapQuery: '香港太子砵蘭街392A',
+        tip: '由太子道西轉入砵蘭街向南行約 2 分鐘',
+        time: '8-2',
+        staffList: ['安兒', 'QQ', '丹丹', '珊珊', 'Irene', '車厘子']
+      },
+      {
+        seq: 3,
+        section: 'sec1',
+        name: '金帝苑(2918)',
+        addr: '旺角弼街 42-44 號利發大廈 1 樓',
+        mapQuery: '香港旺角弼街42-44號利發大廈',
+        tip: '沿砵蘭街向南行至弼街交界（約 2 分鐘）',
+        time: '8-3',
+        staffList: ['娟娟', '法拉', '豆豆']
+      },
+      {
+        seq: 4,
+        section: 'sec2',
+        name: '金來閣(星星)',
+        addr: '旺角砵蘭街 311 號唐一樓',
+        mapQuery: '香港旺角砵蘭街311號',
+        tip: '沿砵蘭街向南過快富街（約 5 分鐘）',
+        time: '8-3',
+        staffList: ['蘭花', 'All']
+      },
+      {
+        seq: 5,
+        section: 'sec2',
+        name: '怡春苑',
+        addr: '旺角上海街 689 號鴻聯大廈 1 樓',
+        mapQuery: '香港旺角上海街689號鴻聯大廈',
+        tip: '過一條街去上海街（近雅蘭街口，約 3 分鐘）',
+        time: '8-2',
+        staffList: ['小蘋果', '多米']
+      },
+      {
+        seq: 6,
+        section: 'sec2',
+        name: '三川',
+        addr: '旺角上海街 685 號二樓 (雅蘭街口)',
+        mapQuery: '香港旺角上海街685號',
+        tip: '就喺怡春苑隔離（689 號旁），落樓即到',
+        time: '9-2',
+        staffList: ['Kelly']
+      },
+      {
+        seq: 7,
+        section: 'sec3',
+        name: '鳳城',
+        addr: '旺角新填地街 373 號 1 樓 (山東街口)',
+        mapQuery: '香港旺角新填地街373號',
+        tip: '沿上海街向南過山東街，轉入一條橫街（約 5 分鐘）',
+        time: '8-12',
+        staffList: ['思琪', '嘉玲']
+      },
+      {
+        seq: 8,
+        section: 'sec3',
+        name: '金豐',
+        addr: '旺角上海街 500 號二樓',
+        mapQuery: '香港旺角上海街500號',
+        tip: '行返出上海街繼續向南行（近豉油街，約 2 分鐘）',
+        time: '8-2',
+        staffList: ['玲瓏', 'Dior', '法拉', '車厘子']
+      },
+      {
+        seq: 9,
+        section: 'sec3',
+        name: '雲來',
+        addr: '旺角上海街 489 號金基樓 1 樓 (豉油街口)',
+        mapQuery: '香港旺角上海街489號金基樓',
+        tip: '金豐斜對面馬路（豉油街口），過馬路即到',
+        time: '8-12',
+        staffList: ['All']
+      },
+      {
+        seq: 10,
+        section: 'sec3',
+        name: '金鑽',
+        addr: '旺角上海街 460 號 2 樓',
+        mapQuery: '香港旺角上海街460號',
+        tip: '沿上海街向南過登打士街（約 3 分鐘）',
+        time: '8-2',
+        staffList: ['16', '25']
+      },
+      {
+        seq: 11,
+        section: 'sec3',
+        name: '翡翠',
+        addr: '上海街 456-458 號 1 樓 (長沙街口)',
+        mapQuery: '香港旺角上海街456-458號',
+        tip: '就喺金鑽隔離（近長沙街口／油麻地站 A1 出口）',
+        time: '9-2',
+        staffList: ['91', '395']
+      }
+    ];
+
+    let doneList = JSON.parse(localStorage.getItem('route_done_list_v2') || '[]');
+    let favList = JSON.parse(localStorage.getItem('route_fav_staff_v2') || '[]');
+    let currentFilter = 'all';
+
+    function saveState() {
+      localStorage.setItem('route_done_list_v2', JSON.stringify(doneList));
+      localStorage.setItem('route_fav_staff_v2', JSON.stringify(favList));
+    }
+
+    function toggleDone(seq) {
+      if (doneList.includes(seq)) {
+        doneList = doneList.filter(id => id !== seq);
+      } else {
+        doneList.push(seq);
+      }
+      saveState();
+      render();
+    }
+
+    function toggleFav(seq, person) {
+      const key = `${seq}_${person}`;
+      if (favList.includes(key)) {
+        favList = favList.filter(k => k !== key);
+      } else {
+        favList.push(key);
+      }
+      saveState();
+      render();
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function resetDone() {
+      if (confirm('確定要重設所有「已去」紀錄嗎？')) {
+        doneList = [];
+        saveState();
+        render();
+      }
+    }
+
+    function resetFavs() {
+      if (confirm('確定要清除所有「心水人名」標記嗎？')) {
+        favList = [];
+        saveState();
+        render();
+      }
+    }
+
+    function render() {
+      const container = document.getElementById('listContainer');
+      document.getElementById('progressText').innerText = `已去 ${doneList.length}/${spots.length}`;
+      document.getElementById('favCountText').innerText = `❤️ ${favList.length}`;
+
+      const filtered = spots.filter(item => {
+        if (currentFilter === 'undone') return !doneList.includes(item.seq);
+        if (currentFilter === 'fav') {
+          return item.staffList.some(person => favList.includes(`${item.seq}_${person}`));
+        }
+        if (currentFilter.startsWith('sec')) return item.section === currentFilter;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-msg">暫時未有符合條件嘅紀錄 👆</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const isDone = doneList.includes(item.seq);
+        const hasAnyFav = item.staffList.some(person => favList.includes(`${item.seq}_${person}`));
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.mapQuery)}`;
+
+        const chipsHtml = item.staffList.map(person => {
+          const isLiked = favList.includes(`${item.seq}_${person}`);
+          const safePerson = person.replace(/'/g, "\\'");
+          return `
+            <button class="staff-chip ${isLiked ? 'liked' : ''}" onclick="toggleFav(${item.seq}, '${safePerson}')">
+              ${isLiked ? '❤️ ' : ''}${person}
+            </button>
+          `;
+        }).join('');
+
+        return `
+          <div class="card ${isDone ? 'done' : ''} ${hasAnyFav ? 'has-fav' : ''}">
+            <div class="card-top">
+              <div class="title-group">
+                <span class="seq-num">${item.seq}</span>
+                <span class="shop-name">${item.name}</span>
+                <span class="time-tag">${item.time}</span>
+              </div>
+              <button class="check-btn" onclick="toggleDone(${item.seq})">
+                ${isDone ? '✓ 已去' : '標記已去'}
+              </button>
+            </div>
+            <div class="address-row">🏠 ${item.addr}</div>
+            <div class="walk-tip">🚶 ${item.tip}</div>
+            <div class="staff-section">
+              <div class="staff-hint">撳人名 / 號碼 Mark 低心水：</div>
+              <div class="staff-chips">${chipsHtml}</div>
+            </div>
+            <div class="card-actions">
+              <a class="map-btn" href="${mapUrl}" target="_blank" rel="noopener">
+                📍 Google Maps 導航
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
